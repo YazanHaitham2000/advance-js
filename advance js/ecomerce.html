@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 60%;
+            max-width: 1200px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .product-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: nowrap;
+            margin-bottom: 20px;
+        }
+
+        .product {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            width: 30%;
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .product img {
+            max-width: 100%;
+            height: auto;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+
+        .product p {
+            margin: 10px 0;
+        }
+
+        .product button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .product button:hover {
+            background-color: #0056b3;
+        }
+
+        .cart-container {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-top: 20px;
+            width: 100%;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .cart-container h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .cart-items {
+            margin-bottom: 20px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+        }
+
+        .cart-item span {
+            flex: 1;
+            text-align: center;
+        }
+
+        .cart-item div {
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-item button {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .cart-item button:hover {
+            background-color: blue;
+        }
+
+        .cart-total {
+            font-size: 1.2em;
+            text-align: center;
+        }
+
+        .cart-total button {
+            background-color: blue;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cart-total button:hover {
+            background-color: darkblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="product-container">
+            <div class="product">
+                <img src="file:///C:/Users/Orange/Desktop/advance%20js/1.webp" alt="iPhone 13 Pro">
+                <p>iPhone 13 Pro</p>
+                <p>900jd</p>
+                <button onclick="addToCart('iPhone 13 Pro', 900)">Add to cart</button>
+            </div>
+            <div class="product">
+                <img src="file:///C:/Users/Orange/Desktop/advance%20js/2.webp" alt="Headset">
+                <p>Headset</p>
+                <p>150jd</p>
+                <button onclick="addToCart('Headset', 150)">Add to cart</button>
+            </div>
+            <div class="product">
+                <img src="file:///C:/Users/Orange/Desktop/advance%20js/2.webp" alt="Keyboard">
+                <p>Keyboard</p>
+                <p>60jd</p>
+                <button onclick="addToCart('Keyboard', 60)">Add to cart</button>
+            </div>
+        </div>
+        <div class="cart-container">
+            <h2>Cart</h2>
+            <div class="cart-items">
+               
+            </div>
+            <div class="cart-total">
+                <p>Total: <span id="total">0</span>jd</p>
+                <button onclick="saveCart()">Save</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
+
+        function addToCart(name, price) {
+            const existingItem = cart.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name, price, quantity: 1 });
+            }
+            saveCart();
+            renderCart();
+        }
+
+        function removeFromCart(name) {
+            cart = cart.filter(item => item.name !== name);
+            saveCart();
+            renderCart();
+        }
+
+        function updateQuantity(name, quantity) {
+            const item = cart.find(item => item.name === name);
+            if (item) {
+                item.quantity = quantity;
+                if (item.quantity <= 0) {
+                    removeFromCart(name);
+                } else {
+                    saveCart();
+                    renderCart();
+                }
+            }
+        }
+
+        function renderCart() {
+            const cartItemsContainer = document.querySelector('.cart-items');
+            cartItemsContainer.innerHTML = '';
+            let total = 0;
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                const cartItem = document.createElement('div');
+                cartItem.classList.add('cart-item');
+                cartItem.innerHTML = `
+                    <span>${item.name}</span>
+                    <span>${itemTotal}jd</span>
+                    <div>
+                        <button onclick="updateQuantity('${item.name}', ${item.quantity - 1})">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateQuantity('${item.name}', ${item.quantity + 1})">+</button>
+                    </div>
+                    <button onclick="removeFromCart('${item.name}')">x</button>
+                `;
+                cartItemsContainer.appendChild(cartItem);
+            });
+            document.getElementById('total').textContent = total;
+        }
+
+           
+
+
+        function saveCart() {
+            
+            sessionStorage.setItem('cart', JSON.stringify(cart));
+            
+        }
+
+
+        // Initial render
+        renderCart();
+    </script>
+</body>
+</html>

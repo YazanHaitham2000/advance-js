@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Task 4</title>
+    <style>
+        body.light-mode {
+            background-color: rgb(119, 228, 168);
+            color: black;
+        }
+
+        body.dark-mode {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .grid-container {
+            width: 400px;
+            height: 500px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: auto auto auto auto;
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .grid-container > div {
+            background-color: rgba(255, 255, 255, 0.8);
+            text-align: center;
+            font-size: 30px;
+            line-height: 50px;
+            cursor: pointer;
+        }
+
+        body.dark-mode .grid-container > div {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        #display {
+            grid-column: 1 / span 4;
+            background-color: white;
+            text-align: right;
+            padding-right: 10px;
+            font-size: 30px;
+            line-height: 50px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        body.dark-mode #display {
+            background-color: black;
+            color: white;
+        }
+
+        .mode-toggle {
+            grid-column: 1 / span 4;
+            text-align: center;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 10px;
+            background-color: yellow;
+        }
+
+        body.dark-mode .mode-toggle {
+            background-color: gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container">
+        <div id="display"></div>
+        <div>1</div>
+        <div>2</div>
+        <div>3</div> 
+        <div style="background-color: yellow;">+</div>
+        <div>4</div>
+        <div>5</div>
+        <div>6</div>
+        <div style="background-color: yellow;">-</div>
+        <div>7</div>
+        <div>8</div>
+        <div>9</div>
+        <div style="background-color: yellow;">*</div>
+        <div style="background-color: palevioletred;">c</div>
+        <div>0</div>
+        <div>=</div>
+        <div style="background-color: yellow;">/</div>
+        <div class="mode-toggle">Toggle Mode</div>
+    </div>
+    <script>
+        const display = document.getElementById('display');
+        const modeToggle = document.querySelector('.mode-toggle');
+        let currentInput = sessionStorage.getItem('currentInput') || '';
+        let operator = sessionStorage.getItem('operator') || '';
+        let firstOperand = sessionStorage.getItem('firstOperand') ? parseFloat(sessionStorage.getItem('firstOperand')) : null;
+        let expression = sessionStorage.getItem('expression') || '';
+
+        // Load and apply the saved theme from localStorage
+        document.body.className = localStorage.getItem('theme') || 'light-mode';
+
+        // Display the stored expression on page load
+        display.innerText = expression;
+
+        modeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.className);
+        });
+
+        document.querySelectorAll('.grid-container > div').forEach(button => {
+            button.addEventListener('click', () => {
+                const value = button.innerText;
+
+                if (!isNaN(value)) { // Check if the value is a number
+                    currentInput += value;
+                    expression += value;
+                    display.innerText = expression;
+                    sessionStorage.setItem('currentInput', currentInput);
+                    sessionStorage.setItem('expression', expression);
+                } else if (value === 'c') {
+                    currentInput = '';
+                    firstOperand = null;
+                    operator = '';
+                    expression = '';
+                    display.innerText = '';
+                    sessionStorage.clear();
+                } else if (value === '=') {
+                    if (firstOperand !== null && operator && currentInput) {
+                        const secondOperand = parseFloat(currentInput);
+                        switch (operator) {
+                            case '+':
+                                currentInput = (firstOperand + secondOperand).toString();
+                                break;
+                            case '-':
+                                currentInput = (firstOperand - secondOperand).toString();
+                                break;
+                            case '*':
+                                currentInput = (firstOperand * secondOperand).toString();
+                                break;
+                            case '/':
+                                currentInput = (firstOperand / secondOperand).toString();
+                                break;
+                        }
+                        expression += ` ${value} ${currentInput}`;
+                        display.innerText = currentInput;
+                        firstOperand = null;
+                        operator = '';
+                        expression = '';
+                        sessionStorage.setItem('currentInput', currentInput);
+                        sessionStorage.setItem('expression', expression);
+                        sessionStorage.removeItem('firstOperand');
+                        sessionStorage.removeItem('operator');
+                    }
+                } else { // operator
+                    if (currentInput) {
+                        firstOperand = parseFloat(currentInput);
+                        currentInput = '';
+                        operator = value;
+                        expression += ` ${value} `;
+                        display.innerText = expression;
+                        sessionStorage.setItem('firstOperand', firstOperand);
+                        sessionStorage.setItem('operator', operator);
+                        sessionStorage.setItem('expression', expression);
+                        sessionStorage.removeItem('currentInput');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
